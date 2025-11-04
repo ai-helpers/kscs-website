@@ -5,11 +5,10 @@
   "private": false,
   "scripts": {
     "dev": "astro dev",
-    "dev:local": "KS_CHEAT_SHEETS_PATH=\"$(pwd)/ks-cheat-sheets\" astro dev",
+    "dev:local": "astro dev",
     "build": "NODE_ENV=production astro build",
-    "preview": "KS_CHEAT_SHEETS_PATH=\"$(pwd)/ks-cheat-sheets\" astro preview",
-    "astro": "astro",
-    "setup": "./dev-setup.sh"
+    "preview": "astro preview",
+    "astro": "astro"
   },
   "dependencies": {
     "astro": "^5.2.5",
