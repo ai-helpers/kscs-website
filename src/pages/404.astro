@@ -1,0 +1,80 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <main class="error-page">
+    <div class="error-content">
+      <h1>Page Not Found</h1>
+      <p>The page you're looking for doesn't exist.</p>
+      <p>If you're trying to access our documentation, please use the correct base URL:</p>
+      <p><strong>https://ai-helpers.github.io/kscs-website/</strong></p>
+      <button id="redirect-btn" class="redirect-button">
+        Go to Homepage
+      </button>
+    </div>
+  </main>
+  
+  <script>
+    // Client-side redirect logic
+    const currentPath = window.location.pathname;
+    
+    // If someone accessed /doc/... instead of /kscs-website/doc/...
+    if (currentPath.startsWith('/doc/')) {
+      const newPath = '/kscs-website' + currentPath + window.location.search + window.location.hash;
+      window.location.replace(newPath);
+    }
+    
+    // Redirect button
+    document.getElementById('redirect-btn')?.addEventListener('click', () => {
+      window.location.href = '/kscs-website/';
+    });
+  </script>
+</Layout>
+
+<style>
+  .error-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f5f5f5;
+  }
+
+  .error-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  h1 {
+    font-size: 32px;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: #666;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  .redirect-button {
+    background: #4a9eff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+
+  .redirect-button:hover {
+    background: #2980eb;
+  }
+</style>

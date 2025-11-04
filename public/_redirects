@@ -1,0 +1,3 @@
+# Redirect rules for Netlify/Vercel (not used by GitHub Pages, but good to have)
+/doc/* /kscs-website/doc/:splat 301
+/* /kscs-website/:splat 301
