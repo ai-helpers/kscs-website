@@ -349,6 +349,7 @@ At build time, the site:
 The built site in `dist/` can be deployed to any static hosting:
 
 **GitHub Pages:**
+
 ```bash
 # Install gh-pages
 npm install -g gh-pages
