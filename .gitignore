@@ -1,6 +1,9 @@
 # build output
 dist/
 
+#
+ks-cheat-sheets/
+
 # generated types
 .astro/
 

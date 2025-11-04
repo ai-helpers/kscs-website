@@ -8,6 +8,7 @@ A static website that displays markdown content from the [ai-helpers/ks-cheat-sh
 - [Overview](#overview)
 - [Features](#features)
 - [Quick Start](#quick-start)
+  - [Local Development URLs](#local-development-urls)
 - [Building the Artifact](#building-the-artifact)
   - [Prerequisites](#prerequisites)
   - [Build Steps](#build-steps)
@@ -61,34 +62,31 @@ This project provides a clean, navigable interface for browsing AI and developme
 ## Quick Start
 
 1. Install dependencies:
-
 ```bash
 npm install
 ```
 
 1. Clone the cheat sheets repository:
-
 ```bash
-git clone https://github.com/ai-helpers/ks-cheat-sheets.git /path/to/ks-cheat-sheets
+git clone https://github.com/ai-helpers/ks-cheat-sheets.git ks-cheat-sheets
 ```
 
-1. Set the repository path (optional, defaults to `/tmp/cc-agent/59674227/ks-cheat-sheets`):
-
+1. Start development server with local repository:
 ```bash
-export KS_CHEAT_SHEETS_PATH=/path/to/ks-cheat-sheets
+npm run dev:local
 ```
 
-1. Build the site:
-
-```bash
-npm run build
-```
-
-1. Preview the built site:
-
+1. Or preview the built site:
 ```bash
 npm run preview
 ```
+
+### Local Development URLs
+
+- **Development server**: `http://localhost:4321/`
+- **Preview server**: `http://localhost:4321/`
+
+Note: The local development now uses base path `/` instead of `/kscs-website` to avoid routing issues.
 
 ## Building the Artifact
 
