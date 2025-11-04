@@ -1,0 +1,249 @@
+---
+---
+
+<div class="search-container">
+  <input
+    type="text"
+    id="searchInput"
+    class="search-input"
+    placeholder="Search documentation..."
+  />
+  <div id="searchResults" class="search-results"></div>
+</div>
+
+<script>
+  interface SearchIndexItem {
+    path: string;
+    title: string;
+    content: string;
+    preview: string;
+  }
+
+  let searchIndex: SearchIndexItem[] = [];
+  let isLoading = false;
+
+  async function loadSearchIndex() {
+    if (searchIndex.length > 0 || isLoading) return;
+
+    isLoading = true;
+    try {
+      const response = await fetch('/search-index.json');
+      searchIndex = await response.json();
+    } catch (error) {
+      console.error('Failed to load search index:', error);
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  function highlightMatch(text: string, query: string): string {
+    const index = text.toLowerCase().indexOf(query.toLowerCase());
+    if (index === -1) return text;
+
+    const before = text.substring(0, index);
+    const match = text.substring(index, index + query.length);
+    const after = text.substring(index + query.length);
+
+    return `${before}<mark>${match}</mark>${after}`;
+  }
+
+  function performSearch(query: string): SearchIndexItem[] {
+    if (!query || query.length < 2) return [];
+
+    const lowerQuery = query.toLowerCase();
+    const terms = lowerQuery.split(/\s+/).filter(t => t.length > 0);
+
+    const results = searchIndex
+      .map(item => {
+        let score = 0;
+
+        for (const term of terms) {
+          if (item.title.toLowerCase().includes(term)) {
+            score += 10;
+          }
+
+          const contentMatches = (item.content.match(new RegExp(term, 'gi')) || []).length;
+          score += contentMatches;
+        }
+
+        return { item, score };
+      })
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map(result => result.item);
+
+    return results;
+  }
+
+  function displayResults(results: SearchIndexItem[], query: string) {
+    const resultsContainer = document.getElementById('searchResults');
+    if (!resultsContainer) return;
+
+    if (results.length === 0) {
+      resultsContainer.innerHTML = `
+        <div class="search-no-results">
+          No results found for "${query}"
+        </div>
+      `;
+      resultsContainer.style.display = 'block';
+      return;
+    }
+
+    resultsContainer.innerHTML = results
+      .map(item => `
+        <a href="${item.path}" class="search-result-item">
+          <div class="search-result-title">${highlightMatch(item.title, query)}</div>
+          <div class="search-result-preview">${item.preview}</div>
+        </a>
+      `)
+      .join('');
+
+    resultsContainer.style.display = 'block';
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadSearchIndex();
+
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const resultsContainer = document.getElementById('searchResults');
+
+    if (!searchInput || !resultsContainer) return;
+
+    let debounceTimer: number;
+
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      const query = (e.target as HTMLInputElement).value;
+
+      debounceTimer = window.setTimeout(() => {
+        const results = performSearch(query);
+        displayResults(results, query);
+      }, 150);
+    });
+
+    searchInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        resultsContainer.style.display = 'none';
+      }, 200);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      const query = searchInput.value;
+      if (query.length >= 2) {
+        const results = performSearch(query);
+        displayResults(results, query);
+      }
+    });
+  });
+</script>
+
+<style>
+  .search-container {
+    position: relative;
+    padding: 16px;
+    border-bottom: 1px solid #333;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: #252525;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .search-input::placeholder {
+    color: #666;
+  }
+
+  .search-input:focus {
+    border-color: #4a9eff;
+  }
+
+  .search-results {
+    display: none;
+    position: absolute;
+    top: 58px;
+    left: 16px;
+    right: 16px;
+    background: #1f1f1f;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  :global(.search-result-item) {
+    display: block;
+    padding: 12px;
+    color: #b0b0b0;
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px solid #333;
+    transition: all 0.15s;
+  }
+
+  :global(.search-result-item:last-child) {
+    border-bottom: none;
+  }
+
+  :global(.search-result-item:hover) {
+    background: #2a2a2a;
+    color: #fff;
+  }
+
+  :global(.search-result-title) {
+    font-weight: 500;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+  }
+
+  :global(.search-result-item:hover .search-result-title) {
+    color: #4a9eff;
+  }
+
+  :global(.search-result-preview) {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  :global(.search-no-results) {
+    padding: 16px 12px;
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+  }
+
+  :global(mark) {
+    background: #4a9eff;
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 2px;
+  }
+
+  .search-results::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .search-results::-webkit-scrollbar-track {
+    background: #1f1f1f;
+  }
+
+  .search-results::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+  }
+</style>

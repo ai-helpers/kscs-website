@@ -1,0 +1,147 @@
+---
+import { getRepoStructure, type FileNode } from '../lib/repository';
+import SearchBar from './SearchBar.astro';
+
+const structure = await getRepoStructure();
+
+function renderTree(nodes: FileNode[], level = 0): string {
+  return nodes
+    .sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    })
+    .map(node => {
+      if (node.type === 'directory') {
+        return `
+          <details class="nav-directory" style="padding-left: ${level * 16}px">
+            <summary>${node.name}</summary>
+            <div class="nav-children">
+              ${node.children ? renderTree(node.children, level + 1) : ''}
+            </div>
+          </details>
+        `;
+      } else {
+        return `
+          <a href="/doc/${node.path}" class="nav-file" style="padding-left: ${level * 16}px">
+            ${node.name}
+          </a>
+        `;
+      }
+    })
+    .join('');
+}
+---
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>KS Cheat Sheets</h1>
+    <p class="subtitle">AI & Dev Knowledge Base</p>
+  </div>
+  <SearchBar />
+  <div class="nav-tree" set:html={renderTree(structure)} />
+</nav>
+
+<style>
+  .sidebar {
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    overflow-y: auto;
+    border-right: 1px solid #333;
+  }
+
+  .sidebar-header {
+    padding: 24px;
+    border-bottom: 1px solid #333;
+    background: #0d0d0d;
+  }
+
+  .sidebar-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .nav-tree {
+    padding: 16px 0;
+  }
+
+  :global(.nav-directory) {
+    margin: 0;
+    padding: 0;
+  }
+
+  :global(.nav-directory summary) {
+    padding: 8px 16px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 500;
+    color: #fff;
+    user-select: none;
+    transition: background 0.15s;
+  }
+
+  :global(.nav-directory summary:hover) {
+    background: #252525;
+  }
+
+  :global(.nav-directory summary::before) {
+    content: '▶';
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 10px;
+    transition: transform 0.15s;
+  }
+
+  :global(.nav-directory[open] summary::before) {
+    transform: rotate(90deg);
+  }
+
+  :global(.nav-children) {
+    padding-left: 0;
+  }
+
+  :global(.nav-file) {
+    display: block;
+    padding: 8px 16px;
+    color: #b0b0b0;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  :global(.nav-file:hover) {
+    background: #252525;
+    color: #fff;
+    border-left-color: #4a9eff;
+  }
+
+  .sidebar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .sidebar::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  .sidebar::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+  }
+
+  .sidebar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+</style>

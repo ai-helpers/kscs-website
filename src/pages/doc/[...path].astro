@@ -1,0 +1,263 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navigation from '../../components/Navigation.astro';
+import { getFileContent, getRepoStructure } from '../../lib/repository';
+import { marked } from 'marked';
+
+export async function getStaticPaths() {
+  const structure = await getRepoStructure();
+
+  function collectPaths(nodes: any[], paths: string[] = []): string[] {
+    for (const node of nodes) {
+      if (node.type === 'file') {
+        paths.push(node.path);
+      } else if (node.children) {
+        collectPaths(node.children, paths);
+      }
+    }
+    return paths;
+  }
+
+  const allPaths = collectPaths(structure);
+
+  return allPaths.map((filePath) => ({
+    params: { path: filePath }
+  }));
+}
+
+const { path } = Astro.params;
+const decodedPath = decodeURIComponent(path || '');
+
+let content = '';
+let error = '';
+
+try {
+  const rawContent = await getFileContent(decodedPath);
+  content = marked(rawContent) as string;
+} catch (e) {
+  error = e instanceof Error ? e.message : 'Failed to load content';
+}
+
+const breadcrumbs = decodedPath.split('/');
+const title = breadcrumbs[breadcrumbs.length - 1]?.replace('.md', '') || 'Document';
+---
+
+<Layout>
+  <Navigation />
+  <main class="content">
+    <article class="document">
+      <div class="breadcrumb">
+        {breadcrumbs.map((crumb, index) => (
+          <>
+            <span class="crumb">{crumb}</span>
+            {index < breadcrumbs.length - 1 && <span class="separator">/</span>}
+          </>
+        ))}
+      </div>
+
+      {error ? (
+        <div class="error">
+          <h2>Error Loading Document</h2>
+          <p>{error}</p>
+        </div>
+      ) : (
+        <div class="markdown-content" set:html={content} />
+      )}
+    </article>
+  </main>
+</Layout>
+
+<style>
+  .content {
+    margin-left: 280px;
+    min-height: 100vh;
+    background: #f5f5f5;
+  }
+
+  .document {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  }
+
+  .breadcrumb {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .crumb {
+    color: #888;
+  }
+
+  .separator {
+    margin: 0 8px;
+    color: #ccc;
+  }
+
+  .error {
+    padding: 24px;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    color: #c33;
+  }
+
+  .error h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+  }
+
+  .error p {
+    margin: 0;
+  }
+
+  .markdown-content {
+    line-height: 1.8;
+    color: #333;
+  }
+
+  :global(.markdown-content h1) {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 32px 0 16px;
+    color: #1a1a1a;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+
+  :global(.markdown-content h2) {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 28px 0 14px;
+    color: #1a1a1a;
+  }
+
+  :global(.markdown-content h3) {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: #333;
+  }
+
+  :global(.markdown-content h4) {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: #333;
+  }
+
+  :global(.markdown-content p) {
+    margin: 16px 0;
+    line-height: 1.8;
+  }
+
+  :global(.markdown-content a) {
+    color: #4a9eff;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+
+  :global(.markdown-content a:hover) {
+    border-bottom-color: #4a9eff;
+  }
+
+  :global(.markdown-content ul, .markdown-content ol) {
+    margin: 16px 0;
+    padding-left: 32px;
+  }
+
+  :global(.markdown-content li) {
+    margin: 8px 0;
+  }
+
+  :global(.markdown-content code) {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9em;
+    color: #d63384;
+  }
+
+  :global(.markdown-content pre) {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 24px 0;
+  }
+
+  :global(.markdown-content pre code) {
+    background: transparent;
+    padding: 0;
+    color: #e0e0e0;
+    font-size: 14px;
+  }
+
+  :global(.markdown-content blockquote) {
+    margin: 24px 0;
+    padding: 16px 24px;
+    border-left: 4px solid #4a9eff;
+    background: #f8f9fa;
+    color: #555;
+  }
+
+  :global(.markdown-content table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+  }
+
+  :global(.markdown-content th, .markdown-content td) {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #e0e0e0;
+  }
+
+  :global(.markdown-content th) {
+    background: #f5f5f5;
+    font-weight: 600;
+  }
+
+  :global(.markdown-content img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 24px 0;
+  }
+
+  :global(.markdown-content hr) {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 32px 0;
+  }
+
+  @media (max-width: 768px) {
+    .content {
+      margin-left: 0;
+    }
+
+    .document {
+      padding: 24px;
+    }
+
+    :global(.markdown-content h1) {
+      font-size: 26px;
+    }
+
+    :global(.markdown-content h2) {
+      font-size: 22px;
+    }
+
+    :global(.markdown-content pre) {
+      padding: 16px;
+    }
+  }
+</style>
