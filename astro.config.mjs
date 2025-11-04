@@ -5,8 +5,5 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://ai-helpers.github.io',
   base: '/kscs-website',
-  trailingSlash: 'always',
-  redirects: {
-    '/doc/[...slug]': '/kscs-website/doc/[..slug]'
-  }
+  trailingSlash: 'always'
 });

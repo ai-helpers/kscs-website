@@ -55,6 +55,7 @@ export async function buildSearchIndex(): Promise<SearchIndexItem[]> {
   const structure = await getRepoStructure();
   const files = extractAllFiles(structure);
   const index: SearchIndexItem[] = [];
+  const base = import.meta.env.BASE_URL || '/';
 
   for (const file of files) {
     try {
@@ -64,7 +65,7 @@ export async function buildSearchIndex(): Promise<SearchIndexItem[]> {
       const preview = createPreview(content);
 
       index.push({
-        path: `/doc/${file.path}`,
+        path: `${base}doc/${file.path}`,
         title,
         content: stripped.toLowerCase(),
         preview

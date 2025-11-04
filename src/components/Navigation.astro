@@ -3,6 +3,7 @@ import { getRepoStructure, type FileNode } from '../lib/repository';
 import SearchBar from './SearchBar.astro';
 
 const structure = await getRepoStructure();
+const base = import.meta.env.BASE_URL;
 
 function renderTree(nodes: FileNode[], level = 0): string {
   return nodes
@@ -22,7 +23,7 @@ function renderTree(nodes: FileNode[], level = 0): string {
         `;
       } else {
         return `
-          <a href="/doc/${node.path}" class="nav-file" style="padding-left: ${level * 16}px">
+          <a href="${base}doc/${node.path}" class="nav-file" style="padding-left: ${level * 16}px">
             ${node.name}
           </a>
         `;
