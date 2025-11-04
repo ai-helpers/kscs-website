@@ -28,6 +28,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Checkout ks-cheat-sheets repository
+        uses: actions/checkout@v4
+        with:
+          repository: ai-helpers/ks-cheat-sheets
+          path: ks-cheat-sheets
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,6 +49,8 @@ jobs:
       
       - name: Build with Astro
         run: npm run build
+        env:
+          KS_CHEAT_SHEETS_PATH: ${{ github.workspace }}/ks-cheat-sheets
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
